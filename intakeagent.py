@@ -13,7 +13,7 @@ class IntakeOutput(BaseModel):
     
     
     
-def intakeagent(state: agentstate.AgentState, llm) -> dict:
+def intake_node(state: agentstate.AgentState, llm) -> dict:
     
     raw_lead = state['raw_lead']
     structured_llm = llm.with_structured_output(IntakeOutput)
