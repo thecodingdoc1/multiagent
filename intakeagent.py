@@ -1,3 +1,5 @@
+from logging import log
+
 import agentstate
 from ppdantic import BaseModel, Field
 
@@ -14,10 +16,33 @@ class IntakeOutput(BaseModel):
     
     
 def intake_node(state: agentstate.AgentState, llm) -> dict:
-    
+    new_count = state.get('count', 0) + 1
     raw_lead = state['raw_lead']
     structured_llm = llm.with_structured_output(IntakeOutput)
-    result = structured_llm.invoke(f"Extract information from raw lead: {raw_lead}")
+    try:
+        result = structured_llm.invoke(f"Extract information from raw lead: {raw_lead}")
+    except Exception as e:
+        log.error(f"Error during LLM invocation: {e}")
+        if (new_count > 3):
+            return {
+                'error_flag': "fatal"
+            }
+        else:
+            return {
+                'error_flag': "retry",
+                'count': new_count
+            }
+    
+    if (result.issue.problem == "" or result.issue.location == ""):    
+        if (new_count > 3):
+            return {
+                'error_flag': "fatal"
+            }
+        else:
+            return {
+                'error_flag': "retry",
+                'count': new_count
+            }
     return {
         'name': result.name,
         'phone': result.phone,

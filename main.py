@@ -27,3 +27,11 @@ def main():
     memory = MemorySaver()
     workflow.add_node("send_email", send_email_node)
     app = workflow.compile(checkpointer=memory, interrupt_before=["send_email"])
+    config = {"configurable": {"thread-id": "12345"}}
+    final_state = app.invoke({"raw_lead": "Hello, my name is John Doe. I have a leaking faucet in the kitchen. Please help! My phone number is 555-1234."
+    }, config=config)
+    print(final_state)
+    app.invoke(None, config=config) # This will trigger the send_email_node since we set it to interrupt before.
+
+if __name__ == "__main__":    
+    main()
